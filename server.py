@@ -1,12 +1,11 @@
 import asyncio
 import numpy as np
-import os
+import requests
 import time
+import re
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-import wave
-import io
-from groq import Groq 
+import mlx_whisper  
 
 app = FastAPI()
 
@@ -18,126 +17,161 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "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")
+MLX_MODEL_PATH = "mlx-community/whisper-medium-mlx"
+OLLAMA_URL = "http://localhost:11434/api/generate"
 
-# ⚡ TỶ LỆ VÀNG CHỐNG SPAM: Ngừng giọng 0.6 giây giúp gom câu dài, né thẻ đỏ Groq
-SILENCE_DURATION = 0.6
+# 🌟 CẢI TIẾN 4: Kéo dài nhịp cắt lên 0.8 giây để bắt trọn câu, tránh băm vụn ngữ pháp
+SILENCE_DURATION = 0.8 
 
-print("🚀 SERVER BUSINESS v6.3 - DIỆT TẬN GỐC LỖI NHẠI PROMPT READY!", flush=True)
+gpu_lock = asyncio.Lock()
 
-def process_audio_via_groq(audio_bytes):
+print("🚀 Đang kích hoạt bộ não MLX Whisper Medium trên GPU M4...", flush=True)
+try:
+    dummy_audio = np.zeros(16000, dtype=np.float32)
+    mlx_whisper.transcribe(dummy_audio, path_or_hf_repo=MLX_MODEL_PATH)
+    print("✅ ĐÃ NẠP MODEL MLX MEDIUM THÀNH CÔNG VÀO GPU/RAM! HỆ THỐNG SẴN SÀNG.", flush=True)
+except Exception as e:
+    print(f"❌ THẤT BẠI KHI KHỞI ĐỘNG MODEL: {e}", flush=True)
+
+def is_garbage_or_foreign(text):
+    clean = text.lower().strip(".,!? ")
+    garbage_words = [
+        "thank you", "thank you.", "thanks", "you", "subtitles", 
+        "hmm", "umm", "uh", "ah", "oh", "well", "beleza", "implied", "chau", "chau."
+    ]
+    if clean in garbage_words or len(clean) <= 2:
+        return True
+    return False
+
+def double_check_language(text, detected_lang):
+    text_lower = text.lower()
+    vi_chars = set("àáảãạâầấẩẫậăằắẳẵặèéẻẽẹêềếểễệđìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵ")
+    if detected_lang == 'vi':
+        has_vi_accent = any(char in vi_chars for char in text_lower)
+        en_keywords = ['is', 'that', 'what', 'you', 'it', 'was', 'to', 'the', 'how', 'about', 'of', 'good', 'course', 'luck', 'great', 'busy', 'project', 'hot', 'running', 'hard']
+        has_en_keywords = any(word in text_lower.split() for word in en_keywords)
+        if not has_vi_accent and has_en_keywords:
+            return 'en'
+    return detected_lang
+
+def translate_with_qwen(text, detected_language, context_history):
+    if not text.strip():
+        return ""
+    source_lang = "Vietnamese" if detected_language == "vi" else "English"
+    target_lang = "English" if detected_language == "vi" else "Vietnamese"
+    
+    # Chuẩn bị bộ nhớ ngữ cảnh (tối đa 3 câu gần nhất)
+    history_text = "\n".join(context_history) if context_history else "No previous context."
+    
+    # 🌟 CẢI TIẾN 2 & 3: Bơm bộ nhớ ngữ cảnh và Từ điển ép buộc vào Prompt
+    prompt = f"""You are an elite bilingual simultaneous interpreter.
+    Task: Translate the CURRENT TEXT from {source_lang} to {target_lang}.
+
+    --- CONTEXT HISTORY (For reference only, DO NOT translate this again) ---
+    {history_text}
+    -----------------------------------------------------------------------
+
+    --- DICTIONARY & SMART CORRECTIONS ---
+    - If you hear "mỳ độ" or "nhật độ" -> Correct it to "nhiệt độ" (Temperature).
+    - If you hear "chạy rất hard" -> Correct it to "running heavily" or "overloaded".
+    - Keep IT terms standard (backend, frontend, deploy, server, database).
+    --------------------------------------
+
+    Strict Rules:
+    1. Output ONLY the direct translation of the CURRENT TEXT. No notes, no explanation.
+    2. SECONDARY FILTER: If the current text is meaningless gibberish or a hallucination, output EXACTLY: [DROP]
+    
+    CURRENT TEXT TO TRANSLATE: {text}"""
+    
+    payload = {
+        "model": "qwen2.5:7b",
+        "prompt": prompt,
+        "stream": False,
+        "options": {
+            "temperature": 0.0,    
+            "num_predict": 100
+        }
+    }
     try:
-        if not GROQ_API_KEY:
-            return "Chưa cấu hình API Key", "Vui lòng cấu hình biến môi trường", "vi"
-
-        client = Groq(api_key=GROQ_API_KEY)
-        
-        wav_io = io.BytesIO()
-        with wave.open(wav_io, 'wb') as wav_file:
-            wav_file.setnchannels(1)
-            wav_file.setsampwidth(2)
-            wav_file.setframerate(16000)
-            wav_file.writeframes(audio_bytes)
-        wav_io.seek(0)
-        wav_io.name = "audio.wav"
-
         start_time = time.time()
-        # 🌟 ĐÃ SỬA: Chỉ để từ khóa phong cách, XÓA SẠCH câu mệnh lệnh để tránh bị Whisper nhại chữ
-        transcription = client.audio.transcriptions.create(
-            file=wav_io,
-            model="whisper-large-v3",
-            response_format="verbose_json",
-            prompt="Corporate meeting, technology development, financial reporting, accounting audit, business conference."
-        )
-        
-        data_dict = transcription.model_dump() if hasattr(transcription, 'model_dump') else dict(transcription)
-        original_text = data_dict.get("text", "").strip()
-        detected_lang = data_dict.get("language", "vietnamese").lower()
-        
-        if not original_text or len(original_text) < 2:
-            return "", "", "vi"
-
-        # 🌟 MÀNG LỌC RÁC: Chặn đứng mọi biến thể nhại lại prompt hoặc tiếng ồn hoang tưởng
-        clean_text = original_text.lower().strip(".,!? ")
-        
-        # Nếu văn bản chứa các từ khóa nhảm nhí này -> Hủy luôn tại trận
-        if any(word in clean_text for word in ["keyboard", "typing", "knocking", "background noise", "subtitles", "thank you", "watching"]):
-            print(f"🤫 [Chặn hoang tưởng Whisper]: Đã hủy câu rác: '{original_text}'", flush=True)
-            return "", "", "vi"
-            
-        garbage_words = ["hmm", "umm", "uh", "ah", "beleza", "oh", "well", "you"]
-        if clean_text in garbage_words:
-            print(f"🤫 [Bộ lọc nhiễu từ ngắn]: Đã chặn: '{original_text}'", flush=True)
-            return "", "", "vi"
-
-        # HỆ PROMPT THÉP ĐỂ LAMA 3.1 DỊCH CHUYÊN NGÀNH, CẤM NÓI NHẢM
-        if "vietnamese" in detected_lang or "vi" == detected_lang:
-            lang_side = "vi"
-            system_prompt = """You are a silent, direct simultaneous translator. 
-            Task: Translate the input text from Vietnamese to English.
-            Strict Rules:
-            1. Output ONLY the final translation. No quotes, no notes.
-            2. NEVER reply to the user, NEVER explain, NEVER say you cannot translate.
-            3. Even if the text is a weird question or casual, just translate it literally.
-            4. Use high-level tech/finance/accounting jargon if applicable."""
-        else:
-            lang_side = "en"
-            system_prompt = """Bạn là một máy dịch cabin im lặng và trực tiếp.
-            Nhiệm vụ: Dịch văn bản từ tiếng Anh sang tiếng Việt.
-            Quy tắc thép:
-            1. CHỈ trả về bản dịch duy nhất. Không thêm dấu nháy, không kèm ghi chú.
-            2. TUYỆT ĐỐI KHÔNG trò chuyện, KHÔNG giải thích, KHÔNG từ chối dịch với bất kỳ lý do gì.
-            3. Dù văn bản gốc là câu hỏi hay câu cụt, hãy dịch thẳng nó sang tiếng Việt.
-            4. Dùng thuật ngữ công nghệ, tài chính, kế toán chuẩn văn phong công sở."""
-
-        print(f"🎤 [Detected: {lang_side.upper()}] ({time.time() - start_time:.2f}s): {original_text}", flush=True)
-
-        chat_completion = client.chat.completions.create(
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": original_text}
-            ],
-            model="llama-3.1-8b-instant",
-            temperature=0.0, 
-        )
-        translated_text = chat_completion.choices[0].message.content.strip()
-        
-        # Kiểm tra chặn đuôi nếu Llama phá luật giải thích linh tinh
-        clean_translated = translated_text.lower()
-        if "suitable text" in clean_translated or "văn bản cần dịch" in clean_translated or "sẵn sàng giúp" in clean_translated:
-            print(f"🤫 [Bẻ cổ AI nhảm]: Chặn thành công văn bản nói nhảm của LLM.", flush=True)
-            return "", "", "vi"
-            
-        print(f"🤖 [Bản dịch Business]: {translated_text}", flush=True)
-        return original_text, translated_text, lang_side
-
+        response = requests.post(OLLAMA_URL, json=payload, timeout=10)
+        response.raise_for_status()
+        result = response.json().get("response", "").strip()
+        print(f"🤖 [Qwen] Dịch hoàn tất ({time.time() - start_time:.2f}s)", flush=True)
+        return result
     except Exception as e:
-        print(f"❌ Lỗi xử lý Groq API: {e}", flush=True)
-        return "Lỗi xử lý", str(e), "vi"
+        print(f"❌ [Lỗi Qwen]: {e}", flush=True)
+        return "Error in LLM translation."
 
-async def process_audio_pipeline(audio_data, websocket: WebSocket):
-    original, translated, lang_side = await asyncio.to_thread(process_audio_via_groq, audio_data)
-    if original and translated:
-        try:
-            await websocket.send_json({
-                "type": "result",
-                "original": original,
-                "translated": translated,
-                "lang": lang_side
-            })
-        except Exception as e:
-            print(f"❌ Lỗi gửi WebSocket: {e}", flush=True)
+async def process_audio_pipeline(audio_data, websocket: WebSocket, current_threshold, chat_history):
+    try:
+        audio_array = np.frombuffer(audio_data, dtype=np.int16).astype(np.float32) / 32768.0
+        
+        # 🌟 CẢI TIẾN 1: Mồi từ khóa chuyên ngành vào thẳng tai của Whisper
+        def run_mlx_whisper():
+            return mlx_whisper.transcribe(
+                audio_array, 
+                path_or_hf_repo=MLX_MODEL_PATH, 
+                temperature=0,
+                initial_prompt="Cuộc họp doanh nghiệp, công nghệ, tài chính, nhiệt độ, dự án, hệ thống máy chủ, backend, frontend, API, database."
+            )
+
+        stt_start = time.time()
+        
+        async with gpu_lock:
+            result = await asyncio.to_thread(run_mlx_whisper)
+            
+        original_text = result.get("text", "").strip()
+        detected_lang = result.get("language", "vi")
+
+        if detected_lang not in ['vi', 'en', 'en-US', 'en-GB']:
+            print(f"🤫 [Ảo giác Whisper]: Nhận diện nhầm thành '{detected_lang}' -> Đã hủy bóc băng!", flush=True)
+            return
+
+        if not original_text or is_garbage_or_foreign(original_text):
+            return
+
+        corrected_lang = double_check_language(original_text, detected_lang)
+        print(f"🎤 [MLX GPU] [{corrected_lang.upper()}] ({time.time() - stt_start:.2f}s): {original_text}", flush=True)
+
+        await websocket.send_json({"type": "status", "message": f"Detected {corrected_lang.upper()}, translating..."})
+        
+        # Truyền lịch sử ngữ cảnh vào Qwen
+        translated_text = await asyncio.to_thread(translate_with_qwen, original_text, corrected_lang, chat_history)
+        
+        if not translated_text or "[DROP]" in translated_text.upper():
+            print(f"🤫 [Qwen Filter]: LLM từ chối dịch câu rác -> Đã chặn hiển thị.", flush=True)
+            return
+
+        # Lưu lại câu vừa dịch vào bộ nhớ ngắn hạn (tối đa giữ 3 câu)
+        memory_string = f"[{corrected_lang.upper()}] {original_text} -> Translated: {translated_text}"
+        chat_history.append(memory_string)
+        if len(chat_history) > 3:
+            chat_history.pop(0)
+
+        await websocket.send_json({
+            "type": "result",
+            "original": original_text,
+            "translated": translated_text,
+            "language": "vi" if corrected_lang == "vi" else "en"
+        })
+    except Exception as e:
+        print(f"❌ Lỗi Pipeline tổng thể: {e}", flush=True)
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
+    print("✅ Client đã kết nối WebSocket!", flush=True)
     audio_buffer = bytearray()
     silence_start_time = None
     speech_start_time = None
     is_speaking = False
     
-    ambient_noise = 120.0
-    dynamic_threshold = 200.0
+    # 🌟 KHỞI TẠO BỘ NHỚ NGẮN HẠN CHO PHIÊN CHAT NÀY
+    chat_history = []
+    
+    ambient_noise = 100.0
+    dynamic_threshold = 180.0
     consecutive_loud_frames = 0
     MAX_SPEECH_DURATION = 15.0 
 
@@ -147,16 +181,18 @@ async def websocket_endpoint(websocket: WebSocket):
             audio_array = np.frombuffer(data, dtype=np.int16)
             rms = np.sqrt(np.mean(audio_array.astype(np.float32)**2)) if len(audio_array) > 0 else 0
             
-            if not is_speaking and rms < 400:
-                ambient_noise = (ambient_noise * 0.95) + (rms * 0.05)
-                dynamic_threshold = max(180, ambient_noise + 70)
+            if not is_speaking:
+                if rms < 400:
+                    ambient_noise = (ambient_noise * 0.95) + (rms * 0.05)
+                    dynamic_threshold = max(160, ambient_noise + 60)
             
             if rms > dynamic_threshold: 
                 if not is_speaking:
                     consecutive_loud_frames += 1
-                    if consecutive_loud_frames >= 2:
+                    if consecutive_loud_frames >= 3:
                         is_speaking = True
                         speech_start_time = time.time()
+                        print(f"🎙️ [PHÁT HIỆN GIỌNG NÓI] RMS: {rms:.1f} (Vượt ngưỡng: {dynamic_threshold:.1f})", flush=True)
                         audio_buffer.extend(data)
                 else:
                     audio_buffer.extend(data)
@@ -172,19 +208,20 @@ async def websocket_endpoint(websocket: WebSocket):
             if is_speaking:
                 current_duration = time.time() - speech_start_time
                 if (silence_start_time and (time.time() - silence_start_time > SILENCE_DURATION)) or (current_duration > MAX_SPEECH_DURATION):
+                    print(f"⏳ [CHỐT BĂNG] Độ dài: {current_duration:.2f}s | Gửi vào hàng đợi MLX GPU...", flush=True)
                     audio_data_to_process = bytes(audio_buffer)
                     audio_buffer.clear()
                     is_speaking = False
                     silence_start_time = None
                     speech_start_time = None
                     consecutive_loud_frames = 0
-                    asyncio.create_task(process_audio_pipeline(audio_data_to_process, websocket))
+                    
+                    asyncio.create_task(process_audio_pipeline(audio_data_to_process, websocket, dynamic_threshold, chat_history))
     except WebSocketDisconnect:
-        pass
+        print("❌ Client ngắt kết nối.", flush=True)
     except Exception as e:
-        print(f"❌ Lỗi hệ thống tại WebSocket Endpoint: {e}", flush=True)
+        print(f"❌ Lỗi WebSocket Endpoint: {e}", flush=True)
 
 if __name__ == '__main__':
     import uvicorn
-    port = int(os.environ.get("PORT", 8000))
-    uvicorn.run("server:app", host="0.0.0.0", port=port)
+    uvicorn.run("server:app", host="0.0.0.0", port=8000, reload=True)
