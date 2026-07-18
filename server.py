@@ -10,7 +10,6 @@ from groq import Groq
 
 app = FastAPI()
 
-# Mở CORS hoàn toàn để giao diện từ Vercel/Local có thể gọi tới thoải mái
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -19,33 +18,39 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Hệ thống tự động đọc API Key từ biến môi trường bảo mật (Environment Variable)
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "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")
 
-SILENCE_DURATION = 0.3 
-print("🚀 SERVER ONLINE LITE SẴN SÀNG DEPLOY LÊN RENDER!")
+# 🌟 BỘ LỌC CHỐNG SPAM MỚI
+SILENCE_DURATION = 1.2  # Đợi im lặng 1.2 giây mới chốt câu (Tránh bị cắt vụn chữ)
+MIN_AUDIO_LENGTH = 16000 * 2 * 0.5  # Âm thanh phải dài trên 0.5 giây mới gửi đi (lọc tiếng ho, tiếng quạt)
+
+# Ép flush=True để Render nhả Log ra ngay lập tức
+print("🚀 SERVER LITE v4 - CHỐNG SPAM API READY!", flush=True)
 
 def process_audio_via_groq(audio_bytes):
-    """Chuyển đổi byte audio thành file WAV ảo trong RAM và gửi lên Groq API"""
     try:
         if not GROQ_API_KEY:
-            print("⚠️ Cảnh báo: Chưa có GROQ_API_KEY! Hệ thống không thể gọi API.")
-            return "Chưa cấu hình API Key", "API Key Error"
+            print("⚠️ Lỗi: Chưa cấu hình GROQ_API_KEY", flush=True)
+            return "Chưa cấu hình API Key", "Vui lòng thêm KEY vào Render"
+
+        # LỌC RÁC: Nếu file âm thanh bé hơn 0.5s, bỏ qua luôn, không gọi API
+        if len(audio_bytes) < MIN_AUDIO_LENGTH:
+            print("💤 [Bỏ qua] Âm thanh quá ngắn, chỉ là tiếng ồn", flush=True)
+            return "", ""
 
         client = Groq(api_key=GROQ_API_KEY)
-        start_time = time.time()
         
-        # Tạo file WAV ảo lưu trong RAM để tiết kiệm tài nguyên hệ thống
         wav_io = io.BytesIO()
         with wave.open(wav_io, 'wb') as wav_file:
             wav_file.setnchannels(1)
-            wav_file.setsampwidth(2)      # 16-bit
-            wav_file.setframerate(16000)  # 16kHz
+            wav_file.setsampwidth(2)
+            wav_file.setframerate(16000)
             wav_file.writeframes(audio_bytes)
         wav_io.seek(0)
         wav_io.name = "audio.wav"
 
-        # 1. Gọi Groq Whisper bóc băng bản Large-v3 khôn nhất hiện tại (< 0.3s)
+        # Bóc băng
+        start_time = time.time()
         transcription = client.audio.transcriptions.create(
             file=wav_io,
             model="whisper-large-v3",
@@ -56,31 +61,37 @@ def process_audio_via_groq(audio_bytes):
         if not original_text or len(original_text) < 2:
             return "", ""
             
-        print(f"🎤 [Groq STT] ({time.time() - start_time:.2f}s): {original_text}")
+        print(f"🎤 [Groq STT] ({time.time() - start_time:.2f}s): {original_text}", flush=True)
 
-        # 2. Gọi siêu máy tính Llama 3 70B dịch thuật thời gian thực
+        # Dịch thuật
         translate_start = time.time()
         prompt = f"""You are a professional, direct bilingual interpreter. 
-        Task: Translate the text accurately between English and Vietnamese.
-        Rules: Output ONLY the final translation, no explanations, no notes, no quotes.
-        
-        Text to translate: {original_text}"""
+        Translate the text accurately between English and Vietnamese.
+        Rules: Output ONLY the final translation, no notes.
+        Text: {original_text}"""
         
         chat_completion = client.chat.completions.create(
             messages=[{"role": "user", "content": prompt}],
-            model="llama-3.1-8b-instant",
+            model="llama-3.1-8b-instant",  # Model quốc dân không bị lỗi
             temperature=0.0,
         )
         translated_text = chat_completion.choices[0].message.content.strip()
-        print(f"🤖 [Groq LLM] Dịch xong ({time.time() - translate_start:.2f}s): {translated_text}")
+        print(f"🤖 [Groq LLM] Dịch: {translated_text}", flush=True)
         
         return original_text, translated_text
+
     except Exception as e:
-        print(f"❌ Lỗi xử lý API: {e}")
-        return "Lỗi xử lý", "API Error"
+        # BẮT ĐÚNG TẬN GỐC LỖI VÀ IN LÊN RENDER
+        error_msg = str(e)
+        print(f"❌ Lỗi Groq API Đỏ: {error_msg}", flush=True)
+        
+        # Nếu bị khóa vì Spam, thông báo thẳng ra màn hình Web
+        if "429" in error_msg or "Rate limit" in error_msg:
+            return "Hệ thống bị khóa tạm thời do SPAM", "Đợi 1 phút rồi nói tiếp..."
+            
+        return "Lỗi xử lý", error_msg
 
 async def process_audio_pipeline(audio_data, websocket: WebSocket):
-    # Đẩy việc gọi API sang Thread riêng để không làm lag luồng nhận WebSocket âm thanh
     original, translated = await asyncio.to_thread(process_audio_via_groq, audio_data)
     if original:
         try:
@@ -90,19 +101,18 @@ async def process_audio_pipeline(audio_data, websocket: WebSocket):
                 "translated": translated
             })
         except Exception as e:
-            print(f"❌ Không thể gửi kết quả về Client: {e}")
+            print(f"❌ Lỗi gửi WebSocket: {e}", flush=True)
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
-    print("✅ Client Online đã kết nối thành công!")
+    print("✅ Client đã kết nối!", flush=True)
     audio_buffer = bytearray()
     silence_start_time = None
     speech_start_time = None
     is_speaking = False
-    
     ambient_noise = 100.0
-    dynamic_threshold = 180.0
+    dynamic_threshold = 200.0  # Nâng mốc nhận diện lên để mic bớt nhạy với tiếng ồn nhỏ
     MAX_SPEECH_DURATION = 15.0 
 
     try:
@@ -111,10 +121,9 @@ async def websocket_endpoint(websocket: WebSocket):
             audio_array = np.frombuffer(data, dtype=np.int16)
             rms = np.sqrt(np.mean(audio_array.astype(np.float32)**2)) if len(audio_array) > 0 else 0
             
-            if not is_speaking:
-                if rms < 400:
-                    ambient_noise = (ambient_noise * 0.95) + (rms * 0.05)
-                    dynamic_threshold = max(160, ambient_noise + 60)
+            if not is_speaking and rms < 400:
+                ambient_noise = (ambient_noise * 0.95) + (rms * 0.05)
+                dynamic_threshold = max(200, ambient_noise + 80)
             
             if rms > dynamic_threshold: 
                 if not is_speaking:
@@ -138,12 +147,11 @@ async def websocket_endpoint(websocket: WebSocket):
                     speech_start_time = None
                     asyncio.create_task(process_audio_pipeline(audio_data_to_process, websocket))
     except WebSocketDisconnect:
-        print("❌ Client ngắt kết nối.")
+        print("❌ Client ngắt kết nối.", flush=True)
     except Exception as e:
-        print(f"❌ Lỗi WebSocket: {e}")
+        print(f"❌ Lỗi Endpoint: {e}", flush=True)
 
 if __name__ == '__main__':
     import uvicorn
-    # 🌟 ĐỘC CHIÊU CHO RENDER: Tự động bắt đúng cổng hệ thống cấp, chạy local thì mặc định 8000
     port = int(os.environ.get("PORT", 8000))
     uvicorn.run("server:app", host="0.0.0.0", port=port)
