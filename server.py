@@ -68,7 +68,7 @@ def process_audio_via_groq(audio_bytes):
         
         chat_completion = client.chat.completions.create(
             messages=[{"role": "user", "content": prompt}],
-            model="llama-3.3-70b-versatile",
+            model="llama-3.1-8b-instant",
             temperature=0.0,
         )
         translated_text = chat_completion.choices[0].message.content.strip()
