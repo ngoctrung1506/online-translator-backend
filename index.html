@@ -34,6 +34,41 @@
             text-transform: uppercase;
             letter-spacing: 1px;
         }
+        /* ===== LANG TOGGLE ===== */
+        .header-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+        .header-row h1 { margin: 0; flex: 1; }
+        .lang-toggle {
+            display: flex;
+            background: #2d2d2d;
+            border-radius: 20px;
+            padding: 3px;
+            gap: 2px;
+            flex-shrink: 0;
+        }
+        .lang-btn {
+            padding: 5px 14px;
+            border-radius: 16px;
+            border: none;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: transparent;
+            color: #6b7280;
+            letter-spacing: 0.5px;
+        }
+        .lang-btn.active {
+            background: #4f46e5;
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(99,102,241,0.4);
+        }
+        .lang-btn:hover:not(.active) { color: #d1d5db; }
+
         .status-box {
             display: flex;
             align-items: center;
@@ -75,7 +110,354 @@
         .btn.active { background-color: #ef4444; }
         .btn:disabled { background-color: #4b5563; cursor: not-allowed; }
 
-        /* Khung chat điều hướng dòng chảy */
+        /* ===== MEETING TIMER ===== */
+        .meeting-timer-box {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border: 1px solid #2d2d5e;
+            border-radius: 12px;
+            padding: 14px 20px;
+            margin-top: 14px;
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.1);
+            transition: box-shadow 0.3s ease;
+        }
+        .meeting-timer-box.active {
+            box-shadow: 0 4px 25px rgba(99, 102, 241, 0.3);
+            border-color: #4f46e5;
+        }
+        .timer-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .timer-ring {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 2px solid #4b5563;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: #6b7280;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+        .timer-ring.active {
+            border-color: #6366f1;
+            color: #818cf8;
+            animation: ring-pulse 2s ease-in-out infinite;
+        }
+        @keyframes ring-pulse {
+            0%   { box-shadow: 0 0 0 0 rgba(99,102,241,0.5); }
+            50%  { box-shadow: 0 0 0 6px rgba(99,102,241,0); }
+            100% { box-shadow: 0 0 0 0 rgba(99,102,241,0); }
+        }
+        .timer-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .timer-label {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #6b7280;
+        }
+        .timer-label.active { color: #818cf8; }
+        .timer-display {
+            font-size: 26px;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 2px;
+            color: #d1d5db;
+            transition: color 0.3s;
+        }
+        .timer-display.active { color: #c7d2fe; }
+        .timer-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-reset {
+            padding: 6px 14px;
+            background: transparent;
+            border: 1px solid #374151;
+            border-radius: 6px;
+            color: #9ca3af;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            letter-spacing: 0.5px;
+        }
+        .btn-reset:hover {
+            background-color: #374151;
+            color: #e5e7eb;
+            border-color: #4b5563;
+        }
+
+        /* ===== EXPORT TOOLBAR ===== */
+        .export-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 10px;
+            gap: 8px;
+        }
+        .export-label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #6b7280;
+            white-space: nowrap;
+        }
+        .export-btns {
+            display: flex;
+            gap: 8px;
+        }
+        .btn-export {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 16px;
+            border-radius: 7px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+        .btn-export.txt {
+            background: #1f2937;
+            color: #9ca3af;
+            border: 1px solid #374151;
+        }
+        .btn-export.txt:hover {
+            background: #374151;
+            color: #f9fafb;
+        }
+        .btn-export.pdf {
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            color: #fff;
+            box-shadow: 0 2px 10px rgba(99,102,241,0.35);
+        }
+        .btn-export.pdf:hover {
+            background: linear-gradient(135deg, #4338ca, #6d28d9);
+            box-shadow: 0 4px 16px rgba(99,102,241,0.5);
+            transform: translateY(-1px);
+        }
+        .btn-export:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        /* ===== PRINT STYLES ===== */
+        @media print {
+            body { background: #fff; color: #111; padding: 0; margin: 0; }
+            .container { box-shadow: none; max-width: 100%; padding: 20px; }
+            .status-box, .btn, .meeting-timer-box, .export-bar { display: none !important; }
+            h1 { color: #4f46e5; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px; }
+            .chat-area {
+                height: auto !important;
+                overflow: visible !important;
+                border: none;
+                background: transparent;
+                gap: 12px;
+            }
+            .chat-bubble {
+                box-shadow: none;
+                border: 1px solid #e5e7eb;
+                break-inside: avoid;
+            }
+            .vi-side .chat-bubble { border-left: 4px solid #3b82f6; background: #f0f7ff; }
+            .en-side .chat-bubble { border-right: 4px solid #10b981; background: #f0fdf4; }
+            .txt-src { color: #1d4ed8 !important; }
+            .en-side .txt-src { color: #059669 !important; }
+            .txt-main { color: #111 !important; }
+            .txt-trans { color: #374151 !important; border-color: #d1d5db; }
+            .txt-duration { background: #f3f4f6 !important; color: #6b7280 !important; border-color: #d1d5db !important; }
+            #print-header { display: block !important; }
+        }
+        #print-header { display: none; font-size: 12px; color: #6b7280; margin-bottom: 16px; line-height: 1.6; }
+
+        /* ===== HISTORY MODAL ===== */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.75);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.open { display: flex; }
+        .modal {
+            background: #1a1a2e;
+            border: 1px solid #2d2d5e;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 720px;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 24px 80px rgba(0,0,0,0.7);
+            animation: modal-in 0.2s ease-out;
+        }
+        @keyframes modal-in {
+            from { opacity: 0; transform: scale(0.96) translateY(10px); }
+            to   { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 22px;
+            border-bottom: 1px solid #2d2d5e;
+        }
+        .modal-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #c7d2fe;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .modal-header-btns {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-clear-all {
+            padding: 5px 12px;
+            background: transparent;
+            border: 1px solid #7f1d1d;
+            border-radius: 6px;
+            color: #fca5a5;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-clear-all:hover { background: #7f1d1d; color: #fff; }
+        .btn-close-modal {
+            width: 30px; height: 30px;
+            display: flex; align-items: center; justify-content: center;
+            background: #374151;
+            border: none;
+            border-radius: 6px;
+            color: #9ca3af;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-close-modal:hover { background: #4b5563; color: #fff; }
+        .modal-body {
+            overflow-y: auto;
+            flex: 1;
+            padding: 16px;
+        }
+        /* History list */
+        .history-empty {
+            text-align: center;
+            color: #6b7280;
+            padding: 48px 16px;
+            font-size: 14px;
+        }
+        .history-item {
+            background: #16213e;
+            border: 1px solid #2d2d5e;
+            border-radius: 10px;
+            padding: 14px 16px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .history-item:hover { border-color: #4f46e5; background: #1e1b4b; }
+        .history-item-info { flex: 1; min-width: 0; }
+        .history-item-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #e2e8f0;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .history-item-meta {
+            font-size: 11px;
+            color: #6b7280;
+            display: flex;
+            gap: 12px;
+        }
+        .history-item-actions {
+            display: flex;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+        .btn-hist-action {
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+        .btn-hist-view  { background: #1e40af; color: #bfdbfe; }
+        .btn-hist-view:hover  { background: #1d4ed8; }
+        .btn-hist-txt   { background: #374151; color: #d1d5db; }
+        .btn-hist-txt:hover   { background: #4b5563; }
+        .btn-hist-del   { background: #7f1d1d; color: #fca5a5; }
+        .btn-hist-del:hover   { background: #991b1b; }
+        /* Detail view */
+        .detail-back {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #818cf8;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 12px;
+            width: fit-content;
+        }
+        .detail-back:hover { color: #a5b4fc; }
+        .detail-meta {
+            background: #0f172a;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 12px;
+            color: #94a3b8;
+            margin-bottom: 14px;
+            display: flex;
+            gap: 18px;
+            flex-wrap: wrap;
+        }
+        .detail-entry {
+            background: #0f172a;
+            border-radius: 8px;
+            padding: 10px 14px;
+            margin-bottom: 8px;
+            border-left: 3px solid #3b82f6;
+            font-size: 13px;
+        }
+        .detail-entry.en { border-left-color: #10b981; }
+        .detail-entry-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b; margin-bottom: 4px; }
+        .detail-entry-orig { color: #f1f5f9; margin-bottom: 4px; }
+        .detail-entry-trans { color: #94a3b8; font-style: italic; }
+        .detail-entry-dur { font-size: 10px; color: #475569; margin-top: 4px; }
         .chat-area {
             background-color: #141414;
             padding: 20px;
@@ -151,15 +533,44 @@
         }
         .vi-side .txt-trans { color: #93c5fd; }
         .en-side .txt-trans { color: #6ee7b7; }
+
+        .txt-duration {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 10px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            padding: 3px 8px;
+            border-radius: 20px;
+            opacity: 0.75;
+        }
+        .vi-side .txt-duration {
+            background-color: rgba(59, 130, 246, 0.15);
+            color: #93c5fd;
+            border: 1px solid rgba(59, 130, 246, 0.25);
+        }
+        .en-side .txt-duration {
+            background-color: rgba(16, 185, 129, 0.15);
+            color: #6ee7b7;
+            border: 1px solid rgba(16, 185, 129, 0.25);
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>AI Bilingual Chat Interpreter</h1>
-    
+    <div class="header-row">
+        <h1>Meeting Bridge AI</h1>
+        <div class="lang-toggle">
+            <button class="lang-btn active" id="lang-vi" onclick="setLang('vi')">🇻🇳 VI</button>
+            <button class="lang-btn" id="lang-en" onclick="setLang('en')">🇬🇧 EN</button>
+        </div>
+    </div>
+
     <div class="status-box">
-        <div>Trạng thái: <span id="status-text">Đang kết nối Server...</span></div>
+        <div><span id="label-status">Trạng thái</span>: <span id="status-text">Đang kết nối Server...</span></div>
         <div style="display: flex; align-items: center;">
             <span id="status-indicator" class="status-dot"></span>
             <span id="state-label">OFFLINE</span>
@@ -168,13 +579,184 @@
 
     <button id="action-btn" class="btn" disabled>Đang kết nối Server...</button>
 
+    <!-- Meeting Duration Timer -->
+    <div id="timer-box" class="meeting-timer-box">
+        <div class="timer-left">
+            <div id="timer-ring" class="timer-ring">🕐</div>
+            <div class="timer-info">
+                <div id="timer-label" class="timer-label"></div>
+                <div id="timer-display" class="timer-display">00:00:00</div>
+            </div>
+        </div>
+        <div class="timer-right">
+            <button id="btn-reset" class="btn-reset">↺ <span id="label-reset"></span></button>
+        </div>
+    </div>
+
+    <!-- Export Toolbar -->
+    <div class="export-bar">
+        <span class="export-label" id="label-export"></span>
+        <div class="export-btns">
+            <button id="btn-history" class="btn-export txt">
+                📚 <span id="label-history"></span>
+            </button>
+            <button id="btn-export-txt" class="btn-export txt" disabled>
+                📃 TXT
+            </button>
+            <button id="btn-export-pdf" class="btn-export pdf" disabled>
+                📈 PDF
+            </button>
+        </div>
+    </div>
+
+    <!-- History Modal -->
+    <div id="history-overlay" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title" id="modal-title-text">📚</div>
+                <div class="modal-header-btns">
+                    <button id="btn-clear-all" class="btn-clear-all"></button>
+                    <button id="btn-close-modal" class="btn-close-modal">×</button>
+                </div>
+            </div>
+            <div id="modal-body" class="modal-body"></div>
+        </div>
+    </div>
+
+    <div id="print-header"></div>
     <div id="chat-area" class="chat-area"></div>
 </div>
 
 <script>
 
-    // ✅ ĐÃ SỬA CHUẨN CÚ PHÁP: Đường dẫn Tunnel sạch sẽ không dính ngoặc rác
-    const RENDER_WS_URL = 'wss://cruz-painting-analysts-trigger.trycloudflare.com/ws';
+    const RENDER_WS_URL = 'ws://localhost:8000/ws';
+
+    // ===== i18n =====
+    const LANG_KEY = 'ui_lang';
+    let uiLang = localStorage.getItem(LANG_KEY) || 'vi';
+
+    const T = {
+        vi: {
+            statusLabel:       'Trạng thái',
+            connecting:        'Đang kết nối Server...',
+            ready:             'Sẵn sàng hoạt động',
+            listening:         'Hệ thống đang lắng nghe...',
+            reconnecting:      'Mất kết nối. Đang thử lại...',
+            micOn:             'Bật Microphone',
+            micOff:            'Tắt Microphone',
+            micError:          'Không mở được mic: ',
+            timerIdle:         'THỜI GIAN CUỘC HỌP',
+            timerRunning:      'ĐANG DIỄN RA',
+            timerPaused:       'CUỘC HỌP TẠM DỪNG',
+            resetBtn:          'ĐẶT LẠI',
+            exportLabel:       '📄 Xuất biên bản',
+            historyBtn:        'LỊCH SỬ',
+            modalTitle:        '📚 Lịch sử cuộc họp',
+            clearAll:          '🗑️ Xóa tất cả',
+            histEmpty:         '📊 Chưa có cuộc họp nào được lưu.<br><small>Cuộc họp tự động lưu khi bạn tắt microphone.</small>',
+            histView:          '👁 Xem',
+            histDel:           '🗑️',
+            histTranslations:  'lượt dịch',
+            detailBack:        '← Quay lại danh sách',
+            detailDate:        'Ngày',
+            detailDuration:    'Thời lượng',
+            detailCount:       'Số lượt',
+            confirmDel:        'Xóa cuộc họp này?',
+            confirmClear:      'Xóa toàn bộ lịch sử cuộc họp?',
+            sessionTitle:      'Cuộc họp',
+            exportedAt:        'Xuất lúc',
+            txtDate:           'Ngày',
+            txtDuration:       'Thời lượng',
+            txtCount:          'Số lượt',
+            bubbleSrcVI:       '🗣️ NGƯỜI NÓI (TIẾNG VIỆT)',
+            bubbleSrcEN:       '🗣️ NGƯỜI NÓI (TIẾNG ANH)',
+            bubbleTransVI:     '💼 BẢN DỊCH (TIẾNG ANH)',
+            bubbleTransEN:     '💼 BẢN DỊCH (TIẾNG VIỆT)',
+            dirVI:             'Tiếng Việt → English',
+            dirEN:             'English → Tiếng Việt',
+            pdfDate:           'Ngày',
+            pdfDuration:       'Thời lượng',
+            pdfCount:          'Số lượt dịch',
+            txtOriginal:       'Gốc',
+            txtTranslated:     'Dịch',
+            filePrefix:        'bien-ban',
+        },
+        en: {
+            statusLabel:       'Status',
+            connecting:        'Connecting to server...',
+            ready:             'Ready',
+            listening:         'Listening...',
+            reconnecting:      'Disconnected. Reconnecting...',
+            micOn:             'Start Recording',
+            micOff:            'Stop Recording',
+            micError:          'Cannot open mic: ',
+            timerIdle:         'MEETING DURATION',
+            timerRunning:      'IN PROGRESS',
+            timerPaused:       'MEETING PAUSED',
+            resetBtn:          'RESET',
+            exportLabel:       '📄 Export transcript',
+            historyBtn:        'HISTORY',
+            modalTitle:        '📚 Meeting History',
+            clearAll:          '🗑️ Clear all',
+            histEmpty:         '📊 No meetings saved yet.<br><small>Meetings are auto-saved when you stop the microphone.</small>',
+            histView:          '👁 View',
+            histDel:           '🗑️',
+            histTranslations:  'translations',
+            detailBack:        '← Back to list',
+            detailDate:        'Date',
+            detailDuration:    'Duration',
+            detailCount:       'Count',
+            confirmDel:        'Delete this meeting?',
+            confirmClear:      'Delete all meeting history?',
+            sessionTitle:      'Meeting',
+            exportedAt:        'Exported at',
+            txtDate:           'Date',
+            txtDuration:       'Duration',
+            txtCount:          'Utterances',
+            bubbleSrcVI:       '🗣️ SPEAKER (VIETNAMESE)',
+            bubbleSrcEN:       '🗣️ SPEAKER (ENGLISH)',
+            bubbleTransVI:     '💼 TRANSLATION (ENGLISH)',
+            bubbleTransEN:     '💼 TRANSLATION (VIETNAMESE)',
+            dirVI:             'Vietnamese → English',
+            dirEN:             'English → Vietnamese',
+            pdfDate:           'Date',
+            pdfDuration:       'Duration',
+            pdfCount:          'Translations',
+            txtOriginal:       'Original',
+            txtTranslated:     'Translation',
+            filePrefix:        'meeting-transcript',
+        }
+    };
+
+    function t(key) { return T[uiLang][key] || key; }
+
+    function applyLang() {
+        // Toggle buttons
+        document.getElementById('lang-vi').classList.toggle('active', uiLang === 'vi');
+        document.getElementById('lang-en').classList.toggle('active', uiLang === 'en');
+        // Static labels
+        document.getElementById('label-status').textContent  = t('statusLabel');
+        document.getElementById('label-export').textContent  = t('exportLabel');
+        document.getElementById('label-reset').textContent   = t('resetBtn');
+        document.getElementById('label-history').textContent = t('historyBtn');
+        document.getElementById('modal-title-text').textContent = t('modalTitle');
+        document.getElementById('btn-clear-all').textContent = t('clearAll');
+        // Timer label (only update if not currently running)
+        if (!timerRunning) timerLabel.textContent = t('timerIdle');
+        // Action button (only update text if not recording)
+        if (!isRecording && actionBtn && !actionBtn.disabled) {
+            actionBtn.innerText = t('micOn');
+        }
+        // Update history badge text
+        updateHistoryBadge();
+    }
+
+    function setLang(lang) {
+        uiLang = lang;
+        localStorage.setItem(LANG_KEY, lang);
+        applyLang();
+    }
+    // =================
 
     let socket;
     let audioContext;
@@ -182,21 +764,300 @@
     let globalStream;
     let isRecording = false;
 
+    // === Meeting Timer ===
+    let meetingSeconds = 0;
+    let timerInterval = null;
+    let timerRunning = false;
+
+    const timerBox     = document.getElementById('timer-box');
+    const timerRing    = document.getElementById('timer-ring');
+    const timerLabel   = document.getElementById('timer-label');
+    const timerDisplay = document.getElementById('timer-display');
+    const btnReset     = document.getElementById('btn-reset');
+
+    function formatTime(secs) {
+        const h = String(Math.floor(secs / 3600)).padStart(2, '0');
+        const m = String(Math.floor((secs % 3600) / 60)).padStart(2, '0');
+        const s = String(secs % 60).padStart(2, '0');
+        return `${h}:${m}:${s}`;
+    }
+
+    function startTimer() {
+        if (timerRunning) return;
+        timerRunning = true;
+        timerInterval = setInterval(() => {
+            meetingSeconds++;
+            timerDisplay.textContent = formatTime(meetingSeconds);
+        }, 1000);
+        timerBox.classList.add('active');
+        timerRing.classList.add('active');
+        timerRing.textContent = '⏱️';
+        timerLabel.classList.add('active');
+        timerLabel.textContent = t('timerRunning');
+        timerDisplay.classList.add('active');
+    }
+
+    function pauseTimer() {
+        if (!timerRunning) return;
+        timerRunning = false;
+        clearInterval(timerInterval);
+        timerBox.classList.remove('active');
+        timerRing.classList.remove('active');
+        timerRing.textContent = '🕐';
+        timerLabel.classList.remove('active');
+        timerLabel.textContent = t('timerPaused');
+        timerDisplay.classList.remove('active');
+    }
+
+    function resetTimer() {
+        pauseTimer();
+        meetingSeconds = 0;
+        timerDisplay.textContent = '00:00:00';
+        timerLabel.textContent = t('timerIdle');
+    }
+
+    btnReset.onclick = resetTimer;
+    // =====================
+
     const actionBtn = document.getElementById('action-btn');
     const statusText = document.getElementById('status-text');
     const statusIndicator = document.getElementById('status-indicator');
     const stateLabel = document.getElementById('state-label');
     const chatArea = document.getElementById('chat-area');
+    const btnExportTxt = document.getElementById('btn-export-txt');
+    const btnExportPdf = document.getElementById('btn-export-pdf');
+
+    // === Transcript Store ===
+    const transcriptLog = [];
+    let meetingStartTimestamp = null;
+
+    function enableExportButtons() {
+        btnExportTxt.disabled = false;
+        btnExportPdf.disabled = false;
+    }
+
+    function getDateString() {
+        const loc = uiLang === 'vi' ? 'vi-VN' : 'en-GB';
+        return new Date().toLocaleString(loc, {
+            year: 'numeric', month: '2-digit', day: '2-digit',
+            hour: '2-digit', minute: '2-digit', second: '2-digit'
+        });
+    }
+
+    function exportTXT() {
+        if (!transcriptLog.length) return;
+        const loc = uiLang === 'vi' ? 'vi-VN' : 'en-GB';
+        const dateStr = meetingStartTimestamp
+            ? new Date(meetingStartTimestamp).toLocaleString(loc)
+            : getDateString();
+        const lines = [
+            '='.repeat(60),
+            '  Meeting Bridge AI - Transcript',
+            '='.repeat(60),
+            `${t('txtDate').padEnd(10)}: ${dateStr}`,
+            `${t('txtDuration').padEnd(10)}: ${formatTime(meetingSeconds)}`,
+            `${t('txtCount').padEnd(10)}: ${transcriptLog.length}`,
+            '='.repeat(60),
+            ''
+        ];
+        transcriptLog.forEach((entry, i) => {
+            const side = entry.lang === 'vi' ? t('dirVI') : t('dirEN');
+            lines.push(`[${String(i + 1).padStart(3, '0')}] ${side}  |  ⚡ ${entry.duration}s`);
+            lines.push(`  🗣️  ${t('txtOriginal')} : ${entry.original}`);
+            lines.push(`  💼  ${t('txtTranslated')} : ${entry.translated}`);
+            lines.push('');
+        });
+        lines.push('='.repeat(60));
+        lines.push(`${t('exportedAt')}: ${getDateString()}`);
+        lines.push('='.repeat(60));
+
+        const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${t('filePrefix')}_${new Date().toISOString().slice(0,10)}.txt`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    function exportPDF() {
+        if (!transcriptLog.length) return;
+        const loc = uiLang === 'vi' ? 'vi-VN' : 'en-GB';
+        const dateStr = meetingStartTimestamp
+            ? new Date(meetingStartTimestamp).toLocaleString(loc)
+            : getDateString();
+        const header = document.getElementById('print-header');
+        header.innerHTML = `
+            <strong>${t('pdfDate')}:</strong> ${dateStr} &nbsp;|
+            <strong>${t('pdfDuration')}:</strong> ${formatTime(meetingSeconds)} &nbsp;|
+            <strong>${t('pdfCount')}:</strong> ${transcriptLog.length}
+        `;
+        window.print();
+    }
+
+    btnExportTxt.onclick = exportTXT;
+    btnExportPdf.onclick = exportPDF;
+
+    // ===== MEETING HISTORY (localStorage) =====
+    const STORAGE_KEY = 'bilingual_meeting_history';
+    const historyOverlay = document.getElementById('history-overlay');
+    const modalBody      = document.getElementById('modal-body');
+    const btnHistory     = document.getElementById('btn-history');
+    const btnCloseModal  = document.getElementById('btn-close-modal');
+    const btnClearAll    = document.getElementById('btn-clear-all');
+
+    function loadHistory() {
+        try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
+        catch { return []; }
+    }
+    function saveHistory(list) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+    }
+
+    function saveCurrentSession() {
+        if (!transcriptLog.length) return;
+        const history = loadHistory();
+        const loc = uiLang === 'vi' ? 'vi-VN' : 'en-GB';
+        const dateStr = meetingStartTimestamp
+            ? new Date(meetingStartTimestamp).toLocaleString(loc)
+            : getDateString();
+        const session = {
+            id: Date.now().toString(),
+            title: `${t('sessionTitle')} ${dateStr}`,
+            startTime: meetingStartTimestamp || Date.now(),
+            durationSecs: meetingSeconds,
+            utterances: [...transcriptLog]
+        };
+        history.unshift(session);
+        if (history.length > 50) history.pop();
+        saveHistory(history);
+        updateHistoryBadge();
+    }
+
+    function updateHistoryBadge() {
+        const count = loadHistory().length;
+        const label = document.getElementById('label-history');
+        if (label) label.textContent = count > 0 ? `${t('historyBtn')} (${count})` : t('historyBtn');
+    }
+
+    function buildHistoryList() {
+        const history = loadHistory();
+        if (!history.length) {
+            modalBody.innerHTML = `<div class="history-empty">${t('histEmpty')}</div>`;
+            return;
+        }
+        const loc = uiLang === 'vi' ? 'vi-VN' : 'en-GB';
+        modalBody.innerHTML = history.map(s => {
+            const dur = formatTime(s.durationSecs || 0);
+            const count = s.utterances.length;
+            const dateStr = new Date(s.startTime).toLocaleString(loc);
+            return `
+            <div class="history-item">
+                <div class="history-item-info">
+                    <div class="history-item-title">${s.title}</div>
+                    <div class="history-item-meta">
+                        <span>⏱️ ${dur}</span>
+                        <span>💬 ${count} ${t('histTranslations')}</span>
+                        <span>📅 ${dateStr}</span>
+                    </div>
+                </div>
+                <div class="history-item-actions">
+                    <button class="btn-hist-action btn-hist-view" onclick="showDetail('${s.id}')">${t('histView')}</button>
+                    <button class="btn-hist-action btn-hist-txt"  onclick="exportHistoryTXT('${s.id}')">📃 TXT</button>
+                    <button class="btn-hist-action btn-hist-del"  onclick="deleteSession('${s.id}')">${t('histDel')}</button>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    function showDetail(id) {
+        const history = loadHistory();
+        const s = history.find(x => x.id === id);
+        if (!s) return;
+        const loc = uiLang === 'vi' ? 'vi-VN' : 'en-GB';
+        const dateStr = new Date(s.startTime).toLocaleString(loc);
+        modalBody.innerHTML = `
+            <div class="detail-back" onclick="buildHistoryList()">${t('detailBack')}</div>
+            <div class="detail-meta">
+                <span><strong>${t('detailDate')}:</strong> ${dateStr}</span>
+                <span><strong>${t('detailDuration')}:</strong> ${formatTime(s.durationSecs || 0)}</span>
+                <span><strong>${t('detailCount')}:</strong> ${s.utterances.length}</span>
+            </div>
+            ${s.utterances.map((e, i) => {
+                const side = e.lang === 'vi' ? t('dirVI') : t('dirEN');
+                const cls  = e.lang === 'en' ? 'en' : '';
+                return `<div class="detail-entry ${cls}">
+                    <div class="detail-entry-label">[${String(i+1).padStart(3,'0')}] ${side}</div>
+                    <div class="detail-entry-orig">🗣️ ${e.original}</div>
+                    <div class="detail-entry-trans">💼 ${e.translated}</div>
+                    <div class="detail-entry-dur">⚡ ${e.duration}s${e.time ? ' &bull; ' + e.time : ''}</div>
+                </div>`;
+            }).join('')}
+        `;
+    }
+
+    function deleteSession(id) {
+        if (!confirm(t('confirmDel'))) return;
+        const updated = loadHistory().filter(x => x.id !== id);
+        saveHistory(updated);
+        buildHistoryList();
+        updateHistoryBadge();
+    }
+
+    function exportHistoryTXT(id) {
+        const s = loadHistory().find(x => x.id === id);
+        if (!s) return;
+        const loc = uiLang === 'vi' ? 'vi-VN' : 'en-GB';
+        const dateStr = new Date(s.startTime).toLocaleString(loc);
+        const lines = [
+            '='.repeat(60),
+            '  Meeting Bridge AI - Transcript',
+            '='.repeat(60),
+            `${t('txtDate').padEnd(10)}: ${dateStr}`,
+            `${t('txtDuration').padEnd(10)}: ${formatTime(s.durationSecs || 0)}`,
+            `${t('txtCount').padEnd(10)}: ${s.utterances.length}`,
+            '='.repeat(60), ''
+        ];
+        s.utterances.forEach((e, i) => {
+            const side = e.lang === 'vi' ? t('dirVI') : t('dirEN');
+            lines.push(`[${String(i+1).padStart(3,'0')}] ${side}  |⚡ ${e.duration}s`);
+            lines.push(`  🗣️  ${t('txtOriginal')} : ${e.original}`);
+            lines.push(`  💼  ${t('txtTranslated')} : ${e.translated}`);
+            lines.push('');
+        });
+        lines.push('='.repeat(60));
+        const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${t('filePrefix')}_${new Date(s.startTime).toISOString().slice(0,10)}.txt`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    btnHistory.onclick = () => { buildHistoryList(); historyOverlay.classList.add('open'); };
+    btnCloseModal.onclick = () => historyOverlay.classList.remove('open');
+    historyOverlay.addEventListener('click', e => { if (e.target === historyOverlay) historyOverlay.classList.remove('open'); });
+    btnClearAll.onclick = () => {
+        if (!confirm(t('confirmClear'))) return;
+        saveHistory([]);
+        buildHistoryList();
+        updateHistoryBadge();
+    };
+
+    // Khởi tạo badge + ngôn ngữ
+    applyLang();
+    // ==================================================
 
     function initWebSocket() {
-        statusText.innerText = "Đang kết nối tới M4 Local Cloud...";
+        statusText.innerText = t('connecting');
         socket = new WebSocket(RENDER_WS_URL);
 
         socket.onopen = () => {
-            statusText.innerText = "Sẵn sàng hoạt động";
+            statusText.innerText = t('ready');
             statusIndicator.className = "status-dot online";
             stateLabel.innerText = "ONLINE";
-            actionBtn.innerText = "Bật Microphone";
+            actionBtn.innerText = t('micOn');
             actionBtn.disabled = false;
         };
 
@@ -209,33 +1070,45 @@
             }
 
             if (data.type === 'result') {
-                // 🌟 SỬA TẠI ĐÂY: Đọc chuẩn từ khóa 'language' từ server local
-                const currentLang = data.language || 'vi'; 
-                
+                const currentLang = data.lang || data.language || 'vi';
+
+                // Lưu vào transcript log
+                const loc = uiLang === 'vi' ? 'vi-VN' : 'en-GB';
+                transcriptLog.push({
+                    lang: currentLang,
+                    original: data.original,
+                    translated: data.translated,
+                    duration: data.duration ?? 0,
+                    time: new Date().toLocaleTimeString(loc)
+                });
+                enableExportButtons();
+
                 const wrapper = document.createElement('div');
-                wrapper.className = `msg-wrapper ${currentLang}-side`; // Render chuẩn vi-side hoặc en-side
-                
+                wrapper.className = `msg-wrapper ${currentLang}-side`;
+
                 const bubble = document.createElement('div');
                 bubble.className = 'chat-bubble';
-                
-                const labelSrc = currentLang === 'vi' ? '🗣️ SPEAKER (VIETNAMESE)' : '🗣️ SPEAKER (ENGLISH)';
-                const labelTrans = currentLang === 'vi' ? '💼 TRANSLATION (ENGLISH)' : '💼 BẢN DỊCH (TIẾNG VIỆT)';
+
+                const labelSrc   = currentLang === 'vi' ? t('bubbleSrcVI')   : t('bubbleSrcEN');
+                const labelTrans = currentLang === 'vi' ? t('bubbleTransVI') : t('bubbleTransEN');
+                const durationText = data.duration != null ? `⚡ ${data.duration}s` : '';
 
                 bubble.innerHTML = `
                     <div class="txt-src">${labelSrc}</div>
                     <div class="txt-main">${data.original}</div>
                     <div class="txt-trans">${labelTrans}: ${data.translated}</div>
+                    ${durationText ? `<span class="txt-duration">${durationText}</span>` : ''}
                 `;
-                
+
                 wrapper.appendChild(bubble);
                 chatArea.appendChild(wrapper);
-                chatArea.scrollTop = chatArea.scrollHeight; 
-                statusText.innerText = "Sẵn sàng hoạt động";
+                chatArea.scrollTop = chatArea.scrollHeight;
+                statusText.innerText = t('ready');
             }
         };
 
         socket.onclose = () => {
-            statusText.innerText = "Mất kết nối tới Local Server. Đang thử lại...";
+            statusText.innerText = t('reconnecting');
             statusIndicator.className = "status-dot";
             stateLabel.innerText = "OFFLINE";
             actionBtn.disabled = true;
@@ -272,22 +1145,27 @@
             processor.connect(audioContext.destination);
 
             isRecording = true;
-            statusText.innerText = "Hệ thống đang lắng nghe...";
+            if (!meetingStartTimestamp) meetingStartTimestamp = Date.now();
+            startTimer();
+            statusText.innerText = t('listening');
             statusIndicator.className = "status-dot recording";
             stateLabel.innerText = "RECORDING";
-            actionBtn.innerText = "Tắt Microphone";
+            actionBtn.innerText = t('micOff');
             actionBtn.classList.add('active');
         } catch (err) {
-            alert("Không mở được mic: " + err);
+            alert(t('micError') + err);
             stopRecording();
         }
     }
 
     function stopRecording() {
         isRecording = false;
+        pauseTimer();
+        // Tự động lưu phiên vào localStorage
+        saveCurrentSession();
         actionBtn.classList.remove('active');
-        actionBtn.innerText = "Bật Microphone";
-        statusText.innerText = "Sẵn sàng hoạt động";
+        actionBtn.innerText = t('micOn');
+        statusText.innerText = t('ready');
         statusIndicator.className = "status-dot online";
         stateLabel.innerText = "ONLINE";
 
