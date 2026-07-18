@@ -23,7 +23,7 @@ app.add_middleware(
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "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")
 
 # ⚡ TỐC ĐỘ 0.3S SIÊU NHẠY: Đợi ngừng giọng 0.3 giây là chốt câu đi dịch ngay
-SILENCE_DURATION = 0.3 
+SILENCE_DURATION = 0.6 
 
 print("🚀 SERVER BUSINESS v6.2 - CHUYÊN GIA DỊCH CABIN CHÍNH THỨC SẴN SÀNG!", flush=True)
 
